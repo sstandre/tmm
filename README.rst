@@ -1,3 +1,8 @@
+This fork contains the vectorized version of the functions implemented in Solcore: https://github.com/qpv-research-group/solcore5
+
+Below is the original documentation of the package
+
+
 Author homepage: http://sjbyrnes.com
 
 Package home at PyPI: http://pypi.python.org/pypi/tmm
