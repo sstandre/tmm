@@ -43,11 +43,10 @@ def snell(n_1, n_2, th_1):
     it has angle th_1 in layer with refractive index n_1. Use Snell's law. Note
     that "angles" may be complex!!
     """
-    # Important that the arcsin here is scipy.arcsin, not numpy.arcsin!! (They
+    # Important that the arcsin here is scimath.arcsin, not numpy.arcsin!! (They
     # give different results e.g. for arcsin(2).)
     # Use real_if_close because e.g. arcsin(2 + 1e-17j) is very different from
     # arcsin(2) due to branch cut
-    # Note: scipy.arcsin is deprecated, hence scimath replacement
     return np.lib.scimath.arcsin(np.real_if_close(n_1 * np.sin(th_1) / n_2))
 
 
@@ -57,11 +56,10 @@ def list_snell(n_list, th_0):
     using Snell's law. n_list is index of refraction of each layer. Note that
     "angles" may be complex!!
     """
-    # Important that the arcsin here is scipy.arcsin, not numpy.arcsin!! (They
+    # Important that the arcsin here is scimath.arcsin, not numpy.arcsin!! (They
     # give different results e.g. for arcsin(2).)
     # Use real_if_close because e.g. arcsin(2 + 1e-17j) is very different from
     # arcsin(2) due to branch cut
-    # Note: scipy.arcsin is deprecated, hence scimath replacement
     return np.lib.scimath.arcsin(np.real_if_close(n_list[0] * np.sin(th_0) / n_list))
 
 
