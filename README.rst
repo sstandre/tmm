@@ -2,7 +2,7 @@ This fork contains the vectorized version of the functions implemented in Solcor
 
 Below is the original documentation of the package
 
----
+--------
 
 Author homepage: http://sjbyrnes.com
 
