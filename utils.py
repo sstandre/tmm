@@ -180,6 +180,19 @@ def calculate_ellips(n_list, d_list, lams, th_0):
     return psi, delta
 
 
+def ellips_tan_cos(n_list, d_list, th_0, lam_vac):
+    """
+    Calculates tan and cos of ellipsometric parameters, useful for fiting.
+    """
+
+    s_data = coh_tmm('s', n_list, d_list, th_0, lam_vac)
+    p_data = coh_tmm('p', n_list, d_list, th_0, lam_vac)
+    rs = s_data['r']
+    rp = p_data['r']
+    div = rp/rs
+    mod = abs(div)
+    return {'tanpsi': mod, 'cosDelta': np.real(div)/mod}
+
 
 def load_stack(filename, materials):
     '''Loads stack from Xlsx used by IR-S in Matlab. 'Materials' is a dict 
