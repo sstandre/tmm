@@ -1,7 +1,7 @@
 ﻿# -*- coding: utf-8 -*-
 
 import os
-from setuptools import setup
+from setuptools import setup, find_packages
 
 def read(fname):
     """utility function to read the README file"""
@@ -25,7 +25,11 @@ setup(
     url="http://pypi.python.org/pypi/tmm",
     packages=['tmm'],
     package_data={'tmm':data_files},
-    package_dir={'tmm': '.'},
+    #package_dir={'tmm': '.'},
+    install_requires=[
+        "numpy",
+        "scipy",
+        ],
     long_description=read('README.rst'),
     classifiers=[
         "Intended Audience :: Science/Research",
