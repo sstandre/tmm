@@ -22,6 +22,7 @@ try:
 except ImportError:
     pass
 
+DEG = 180/np.pi
 
 def cauchy_fn(A,B,C):
     def fn(lams):
@@ -172,10 +173,10 @@ def RT_with_cache(filename, stack, materials, lams, pol='s', th_0=0, thicks=None
 def calculate_ellips(n_list, d_list, lams, th_0):
     """parametros elipsometricos de elipsometro Horiba"""
         
-    elipso_data = tmm.ellips(n_list, d_list, th_0*np.pi/180, lams) 
+    elipso_data = tmm.ellips(n_list, d_list, th_0/DEG, lams) 
         
-    psi   = elipso_data["psi"]*180/np.pi
-    delta = -(elipso_data["Delta"]*180/np.pi-180)
+    psi   = elipso_data["psi"]*DEG
+    delta = -(elipso_data["Delta"]*DEG-180)
 
     return psi, delta
 
@@ -185,13 +186,14 @@ def ellips_tan_cos(n_list, d_list, th_0, lam_vac):
     Calculates tan and cos of ellipsometric parameters, useful for fiting.
     """
 
-    s_data = coh_tmm('s', n_list, d_list, th_0, lam_vac)
-    p_data = coh_tmm('p', n_list, d_list, th_0, lam_vac)
+    s_data = coh_tmm('s', n_list, d_list, th_0/DEG, lam_vac)
+    p_data = coh_tmm('p', n_list, d_list, th_0/DEG, lam_vac)
     rs = s_data['r']
     rp = p_data['r']
     div = rp/rs
     mod = abs(div)
-    return {'tanpsi': mod, 'cosDelta': np.real(div)/mod}
+    # return {'tanpsi': mod, 'cosDelta': np.real(div)/mod}
+    return mod, np.real(div)/mod
 
 
 def load_stack(filename, materials):
