@@ -25,6 +25,8 @@ except ImportError:
 DEG = 180/np.pi
 
 def cauchy_fn(A,B,C):
+    """Modelo espectroscopico de Cauchy para n(λ).
+    """
     def fn(lams):
         lams = lams*1.0
         return A+B*np.power(10,4)/np.power(lams,2)+C*np.power(10,9)/np.power(lams,4)
@@ -32,10 +34,15 @@ def cauchy_fn(A,B,C):
 
 
 def constant_fn(val):
+    """Función constante.
+    """
     return partial(np.full_like, fill_value=val)
 
 
 def brugg_fn(n_a, n_b, f_b):
+    """Modelo de campo medio de Bruggeman. n efectivo correspondiente a una mezcla con
+    fracción f_b de la especie b (indices n_b) y (1-f_b) de la especie a (indices n_a).
+    """
     def fn(lams):
         n1 = n_a(lams)
         n2 = n_b(lams)
@@ -43,7 +50,9 @@ def brugg_fn(n_a, n_b, f_b):
     return fn
 
 def load_fn(filename, skiprows=1):
-    
+    """Carga un archivo de texto de dos columnas (x, y) y devuelve una funcion y(x) que 
+    interpola los valores del archivo.
+    """
     wv, I = np.loadtxt(filename, skiprows=skiprows, unpack=True)
     return interp1d(wv, I,fill_value=(I[0],I[-1]), bounds_error=False)
 
@@ -62,9 +71,10 @@ def n_eff(n1,n2,f):
 
 
 def load_interp(filename, comments=';', skiprows=0, unit='nm'):
-    '''loads optical data and outputs interpolation functions for n and k. 
-    Output functions take wv in nm. Keep default arguments to load .nkv files
-    '''
+    
+    """Carga un archivo de texto de dos columnas (x, n, k) y devuelve dos funciones 
+    n(x), k(x), que interpolan los valores del archivo.
+    """
     scale = {'nm':1.0, 'um':1000.0}
     
     wv, n, k = np.loadtxt(filename, comments=comments, 
@@ -87,9 +97,10 @@ def load_psi_delta_from_spe(filename, offset):
     return P, D
 
 
-def stack2tmm(stack, materials, lams, add_inf=True):
-    '''Transforms a stack into three lists that can be fed into the 'tmm' package.
-    BY DEFAULT ADDS inf AIR LAYERS'''
+def stack2tmm(stack, materials, lams, add_inf=False):
+    """Transforma una estructura en forma de  'stack' en tres listas que sirven como
+    input para las funciones de la librería tmm.
+    """
     n_list = []
     d_list = []
     c_list = []
@@ -99,10 +110,12 @@ def stack2tmm(stack, materials, lams, add_inf=True):
         c_list.append('i')
         
     for layer in stack:
-        d_list.append(layer[0])
-        mat = materials[layer[1]]
-        n_list.append(mat[0](lams) + mat[1](lams)*1.0j)
-        c_list.append(layer[2])
+        thickness, name, coh = layer
+        n, k = materials[name]
+
+        d_list.append(thickness)
+        n_list.append(n(lams) + k(lams)*1.0j)
+        c_list.append(coh)
         
     if add_inf:  
         n_list.append([1.]*len(lams))
@@ -112,10 +125,11 @@ def stack2tmm(stack, materials, lams, add_inf=True):
     return n_list, d_list, c_list
 
 def calculate_RT(stack, materials, lams, pol='s', th_0=0, thicks=None):
-    '''calulate R and T of a stack, for all combinations of thicks.'''
+    """Calcular R y T para un stack, para todas las combinaciones de espesores."""
+
     n_list, d_list, c_list = stack2tmm(stack, materials, lams, add_inf=False)
     n_lams = len(lams)
-    inc = 'i' in c_list[1:-1] #check if  any of the finite layers is incocherent
+    inc = 'i' in c_list[1:-1] #check if  any of the finite layers is incoherent
     if inc:
         def f(pol, n_list, d_list, th_0, lams, c_list):
             return tmm.inc_tmm(pol, n_list, d_list, c_list, th_0, lams)
@@ -154,7 +168,8 @@ def calculate_RT(stack, materials, lams, pol='s', th_0=0, thicks=None):
    
 
 def RT_with_cache(filename, stack, materials, lams, pol='s', th_0=0, thicks=None):
-    """Simple filename-based cache for RT data. Arrays are pickled to disk."""
+    """Cache simple basado en el nombre de archivo. Los arreglos se guardan en el disco
+    usando pickle."""
     if filename is None:
         return calculate_RT(stack, materials, lams, pol, th_0, thicks)
     else:
@@ -182,12 +197,11 @@ def calculate_ellips(n_list, d_list, lams, th_0):
 
 
 def ellips_tan_cos(n_list, d_list, th_0, lam_vac):
-    """
-    Calculates tan and cos of ellipsometric parameters, useful for fiting.
+    """Tan y cos de los parámetros elipsométricos. Útil para ajustar.
     """
 
-    s_data = coh_tmm('s', n_list, d_list, th_0/DEG, lam_vac)
-    p_data = coh_tmm('p', n_list, d_list, th_0/DEG, lam_vac)
+    s_data = tmm.coh_tmm('s', n_list, d_list, th_0/DEG, lam_vac)
+    p_data = tmm.coh_tmm('p', n_list, d_list, th_0/DEG, lam_vac)
     rs = s_data['r']
     rp = p_data['r']
     div = rp/rs
@@ -197,10 +211,10 @@ def ellips_tan_cos(n_list, d_list, th_0, lam_vac):
 
 
 def load_stack(filename, materials):
-    '''Loads stack from Xlsx used by IR-S in Matlab. 'Materials' is a dict 
-    where new materials will be added. Only materials not already present will 
-    be added. YOU SHOULD CHECK that different nk's have different material names
-    '''
+    """Carga un stack de archivos .xlsx usados por IR-S en Matlab. Los materiales NUEVOS 
+    encontrados se agregaran al diccionario 'materials'. Cerciorarse que nk distintos
+    tengan nombres distintos.
+    """
     
     wb = load_workbook(filename = filename)
     ws = wb['MJSC Definition']
